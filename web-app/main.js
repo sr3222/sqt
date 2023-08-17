@@ -72,6 +72,19 @@ const update_grid = function () {
     );
 
     // Add code below to display the score information.
+    const currentScoreElement = document.getElementById("current-score");
+    const linesClearedElement = document.getElementById("lines-cleared");
+    const currentLevelElement = document.getElementById("current-level");
+
+
+    // Get the current score and lines cleared from the game state
+    const currentScore = game.score.score;
+    const linesCleared = game.score.lines_cleared;
+
+    // Update the score, lines cleared, and current level elements
+    currentScoreElement.innerText = currentScore;
+    linesClearedElement.innerText = linesCleared;
+    currentLevelElement.innerText = Score.level(game.score);
 
 };
 
@@ -105,7 +118,11 @@ document.body.onkeydown = function (event) {
 const timer_function = function () {
     game = Tetris.next_turn(game);
     update_grid();
-    setTimeout(timer_function, 500);
+
+    const level = Score.level(game.score);
+    const timeInterval = 2500 / (level + 4);
+
+    setTimeout(timer_function, timeInterval);
 };
 
 // This first timeout starts the game. it's only called once.

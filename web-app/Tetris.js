@@ -296,7 +296,7 @@ Tetris.new_game = function () {
         "field": new_field(),
         "game_over": false,
         "next_tetromino": next_tetromino,
-        "position": starting_position,
+        "position": [...starting_position],
         "score": Score.new_score()
     };
 };
@@ -471,13 +471,15 @@ Tetris.rotate_ccw = function (game) {
     return R.mergeRight(game, {"current_tetromino": new_rotation});
 };
 
-const descend = function (game) {
+const descend = function (game, points = 0) {
     const new_position = [game.position[0], game.position[1] + 1];
     if (is_blocked(game.field, game.current_tetromino, new_position)) {
         return game;
     }
-    return R.mergeRight(game, {"position": new_position});
+    const new_score = Score.add_points(game.score, points);
+    return R.mergeRight(game, {"position": new_position, "score": new_score});
 };
+
 
 /**
  * Attempt to perform a soft drop, where the piece descends one position.
@@ -492,7 +494,8 @@ Tetris.soft_drop = function (game) {
     if (Tetris.is_game_over(game)) {
         return game;
     }
-    return descend(game);
+    const newGame = descend(game, 1);
+    return newGame;
 };
 
 /**
@@ -509,7 +512,7 @@ Tetris.hard_drop = function (game) {
     if (Tetris.is_game_over(game)) {
         return game;
     }
-    const dropped_once = descend(game);
+    const dropped_once = descend(game, 2);
     if (R.equals(game, dropped_once)) {
         return Tetris.next_turn(game);
     }
@@ -583,6 +586,10 @@ Tetris.next_turn = function (game) {
     // So lock the current piece in place and deploy the next.
     const locked_field = lock(game);
 
+    const lines_to_clear = R.count(is_complete_line)(locked_field);
+
+    const updatedScore = Score.cleared_lines(lines_to_clear, game.score);
+
     const cleared_field = clear_lines(locked_field);
 
     const [next_tetromino, bag] = game.bag();
@@ -594,7 +601,7 @@ Tetris.next_turn = function (game) {
         "game_over": false,
         "next_tetromino": next_tetromino,
         "position": starting_position,
-        "score": game.score
+        "score": updatedScore
     };
 };
 
